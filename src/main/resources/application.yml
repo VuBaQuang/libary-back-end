@@ -1,0 +1,7 @@
+server:
+  ssl:
+    key-store: classpath:PKCS12.p12
+    key-store-password: vbq231198
+    key-store-type: pkcs12
+    key-alias: expertwall
+  port: 8443
