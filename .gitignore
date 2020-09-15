@@ -34,3 +34,7 @@ build/
 /cookie.txt
 /openssl
 /PKCS-12.p12
+/src/main/resources/PKCS12.p12
+/.idea/
+/target/
+/libary-back-end.iml

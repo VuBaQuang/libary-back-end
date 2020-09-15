@@ -1,7 +1,8 @@
 server:
   ssl:
     key-store: classpath:PKCS12.p12
-    key-store-password: vbq231198
+    key-store-password: At130444
     key-store-type: pkcs12
-    key-alias: expertwall
+    key-alias: vubaquangkma
   port: 8443
+#  openssl pkcs12 -export -in ../library-front-end/localhost.pem -inkey ../library-front-end/localhost-key.pem -name vubaquangkma -out src/main/resources/PKCS12.p12
