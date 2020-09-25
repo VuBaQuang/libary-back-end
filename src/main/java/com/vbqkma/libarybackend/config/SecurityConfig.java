@@ -5,7 +5,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
+// Chặn tất cả yêu cầu đến từ http không an toàn
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
