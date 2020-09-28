@@ -1,30 +1,22 @@
 package com.vbqkma.libarybackend.controller;
 
-import com.vbqkma.libarybackend.dto.LoginDTO;
-import com.vbqkma.libarybackend.model.User;
-import com.vbqkma.libarybackend.response.GenerateResponse;
-import com.vbqkma.libarybackend.response.GetDetailResponse;
-import com.vbqkma.libarybackend.response.SimpleResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.util.Date;
-
-
+@CrossOrigin(origins = "https://localhost:8051")
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/rest/auth")
 public class AuthController {
     @PostMapping(path = "/login")
-    public @ResponseBody
-    GetDetailResponse<User> login(@RequestBody LoginDTO loginDTO) {
-
-
-return GenerateResponse.generateSuccessGetDetailResponse(new User());
-//        return null;
+    public ResponseEntity<String> login() {
+        System.out.println("POST");
+        return new ResponseEntity<>("success", null, HttpStatus.OK);
+    }
+    @GetMapping(path = "/login")
+    public ResponseEntity<String> log() {
+        System.out.println("GET");
+        return new ResponseEntity<>("<h1>Vũ Bá Quang - AT130444 - Get cookie success !</h1>", null, HttpStatus.OK);
     }
 }
