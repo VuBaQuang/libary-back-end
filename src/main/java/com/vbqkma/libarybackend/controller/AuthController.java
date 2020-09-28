@@ -2,10 +2,8 @@ package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.LoginDTO;
 import com.vbqkma.libarybackend.model.User;
-import com.vbqkma.libarybackend.response.GenerateResponse;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -16,15 +14,17 @@ public class AuthController {
 
     @Autowired
     UserService userService;
-
     @PostMapping(path = "/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
-        userService.login(loginDTO);
-        return new ResponseEntity<>("success", null, HttpStatus.OK);
+    public ResponseEntity login(@RequestBody LoginDTO loginDTO) {
+        return userService.login(loginDTO);
     }
-
     @PostMapping(path = "/register")
     public ResponseEntity register(@RequestBody User body) {
         return userService.register(body);
+    }
+
+    @PostMapping(path = "/info")
+    public ResponseEntity getInfo(@RequestBody User user) {
+        return userService.getInfo(user.getId());
     }
 }
