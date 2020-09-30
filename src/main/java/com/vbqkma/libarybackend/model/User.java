@@ -9,6 +9,8 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @Entity
 @Table(name = "users")
@@ -26,7 +28,8 @@ public class User {
     private String phone;
     private String address;
     private String roles;
-
+    private String token;
+    private Date tokenExpired;
     public User() {
     }
 

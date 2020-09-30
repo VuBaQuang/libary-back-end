@@ -6,12 +6,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Data
 @ResponseBody
 public class SimpleResponse {
-    private String error="error";
+    private String status;
     private String message;
+    private Object data;
 
-    public SimpleResponse(String error, String message) {
-        this.error = error;
+    public SimpleResponse(String status, String message, Object data) {
+        this.status = status;
         this.message = message;
+        this.data = data;
     }
 
     public SimpleResponse() {

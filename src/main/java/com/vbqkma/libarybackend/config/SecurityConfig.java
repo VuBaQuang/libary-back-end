@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 @EnableWebSecurity
@@ -42,8 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
-        return encoder;
+        return new BCryptPasswordEncoder(12);
     }
     @Bean(BeanIds.AUTHENTICATION_MANAGER)
     @Override
@@ -51,4 +51,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // Get AuthenticationManager bean
         return super.authenticationManagerBean();
     }
+//    @Bean
+//    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+//        return new BCryptPasswordEncoder(10,new SecureRandom().);
+//    }
 }

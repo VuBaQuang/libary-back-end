@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Controller
 @RequestMapping("/rest/auth")
 public class AuthController {
@@ -32,8 +34,11 @@ public class AuthController {
     }
 
     @PostMapping(path = "/info")
-    public ResponseEntity getInfo(@RequestBody User user) {
-        ResponseEntity re = userService.getInfo(user.getId());
-        return re;
+    public ResponseEntity getInfo(HttpServletRequest request) {
+        if (request == null) {
+            return ResponseEntity.badRequest().build();
+        }
+       return  userService.getInfo(request);
+
     }
 }
