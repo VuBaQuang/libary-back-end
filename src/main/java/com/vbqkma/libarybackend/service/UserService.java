@@ -14,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
 
 @Service
 public class UserService {
@@ -32,6 +37,9 @@ public class UserService {
 
     @Autowired
     private JwtTokenProvider tokenProvider;
+
+    @Autowired
+    MailService mailService;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -54,7 +62,7 @@ public class UserService {
         if (auth != null && auth.split(" ").length > 1) {
             accessToken = auth.split(" ")[1];
         }
-        logger.info("ACCESS TOKEN: "+accessToken);
+        logger.info("ACCESS TOKEN: " + accessToken);
         try {
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", getUserByToken(accessToken)));
         } catch (Exception e) {
@@ -66,10 +74,10 @@ public class UserService {
 
     public ResponseEntity register(RegisterDTO user) {
         try {
-            User model = new User(null, user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone(), user.getAddress(), "['admin']");
+            User model = new User(null, user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone(), user.getAddress(), "[\"admin\"]");
             model.setPassword(encoder.encode(user.getPassword()));
             userDAO.save(model);
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "register_success", user));
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "register_success", model));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SimpleResponse("error", "server_error", null));
@@ -104,12 +112,23 @@ public class UserService {
         try {
             User user = userDAO.findUserByUsername(dto.getUsername());
             if (user != null) {
-                if (!encoder.matches(user.getPassword(), dto.getPassword())) {
+                if (!encoder.matches(dto.getPassword(),user.getPassword())) {
                     return ResponseEntity.ok().body(new SimpleResponse("error", "password_is_incorrect", null));
                 }
                 user.setPassword(encoder.encode(dto.getNewPassword()));
                 userDAO.save(user);
-                return ResponseEntity.status(HttpStatus.OK).body(user);
+                mailService.sendMail(
+                        user.getEmail(),
+                        "Đổi mật khẩu",
+                        "Đổi mật khẩu thành công",
+                        user.getUsername() + " - " + user.getName(),
+                        "Nếu bạn không thực hiện hành động này vui lòng liên hệ với quản trị viên ngay bây giờ.",
+                        "Liên hệ quản trị viên",
+                        "https://www.facebook.com/profile.php?id=100013548901162"
+
+                );
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "change_password_success", user));
+//                return ResponseEntity.status(HttpStatus.OK).body(user);
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SimpleResponse("error", "server_error", null));
             }
