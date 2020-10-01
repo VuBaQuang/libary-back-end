@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.ChangePasswordDTO;
+import com.vbqkma.libarybackend.dto.ConfirmMailResetPasswordDTO;
 import com.vbqkma.libarybackend.dto.LoginDTO;
 import com.vbqkma.libarybackend.dto.RegisterDTO;
 import com.vbqkma.libarybackend.model.User;
@@ -28,10 +29,16 @@ public class AuthController {
         return userService.login(loginDTO);
     }
 
+    @PostMapping(path = "/confirm-mail-reset-password")
+    public ResponseEntity confirmMailResetPassword(@RequestBody ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
+        return userService.confirmMailResetPassword(confirmMailResetPasswordDTO);
+    }
+
     @PostMapping(path = "/change-password")
     public ResponseEntity changePassword(@RequestBody ChangePasswordDTO dto) {
         return userService.changePassword(dto);
     }
+
     @PostMapping(path = "/register")
     public ResponseEntity register(@RequestBody RegisterDTO body) {
         return userService.register(body);

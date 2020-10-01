@@ -3,19 +3,16 @@ package com.vbqkma.libarybackend.service;
 import com.vbqkma.libarybackend.config.jwt.JwtTokenProvider;
 import com.vbqkma.libarybackend.config.jwt.UserJwtDetails;
 import com.vbqkma.libarybackend.dao.UserDAO;
-import com.vbqkma.libarybackend.dto.ChangePasswordDTO;
-import com.vbqkma.libarybackend.dto.LoginDTO;
-import com.vbqkma.libarybackend.dto.RegisterDTO;
-import com.vbqkma.libarybackend.dto.UserDTO;
+import com.vbqkma.libarybackend.dto.*;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,9 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executor;
 
 @Service
 public class UserService {
@@ -40,6 +34,9 @@ public class UserService {
 
     @Autowired
     MailService mailService;
+
+    @Autowired
+    RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -95,6 +92,9 @@ public class UserService {
                 String jwt = tokenProvider.generateToken(userDetails);
                 user.setToken(jwt);
                 userDAO.save(user);
+                System.out.println(redisTemplate.opsForValue().get(user.getUsername()));
+                redisTemplate.opsForValue().set(user.getUsername(), jwt);
+                System.out.println(redisTemplate.opsForValue().get(user.getUsername()));
 //                UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwt, user.getName());
                 return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "login_success", user));
             } else {
@@ -112,7 +112,7 @@ public class UserService {
         try {
             User user = userDAO.findUserByUsername(dto.getUsername());
             if (user != null) {
-                if (!encoder.matches(dto.getPassword(),user.getPassword())) {
+                if (!encoder.matches(dto.getPassword(), user.getPassword())) {
                     return ResponseEntity.ok().body(new SimpleResponse("error", "password_is_incorrect", null));
                 }
                 user.setPassword(encoder.encode(dto.getNewPassword()));
@@ -151,4 +151,25 @@ public class UserService {
         return null;
     }
 
+    public ResponseEntity confirmMailResetPassword(ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
+        User user = userDAO.findUserByUsername(confirmMailResetPasswordDTO.getUsername());
+        if (user != null) {
+            String code = RandomStringUtils.random(8, true, true);
+            if (user.getEmail().equalsIgnoreCase(confirmMailResetPasswordDTO.getMail())) {
+                mailService.sendMail(
+                        user.getEmail(),
+                        "Reset mật khẩu",
+                        "Xác nhận reset mật khẩu",
+                        user.getUsername() + " - " + user.getName(),
+                        "Nếu bạn không thực hiện hành động này vui lòng liên hệ với quản trị viên ngay bây giờ.",
+                        "Liên hệ quản trị viên",
+                        "https://www.facebook.com/profile.php?id=100013548901162"
+
+                );
+            }
+        } else {
+
+        }
+        return null;
+    }
 }
