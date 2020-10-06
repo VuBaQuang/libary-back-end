@@ -1,10 +1,6 @@
 package com.vbqkma.libarybackend.controller;
 
-import com.vbqkma.libarybackend.dto.ChangePasswordDTO;
-import com.vbqkma.libarybackend.dto.ConfirmMailResetPasswordDTO;
-import com.vbqkma.libarybackend.dto.LoginDTO;
-import com.vbqkma.libarybackend.dto.RegisterDTO;
-import com.vbqkma.libarybackend.model.User;
+import com.vbqkma.libarybackend.dto.*;
 import com.vbqkma.libarybackend.service.MailService;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +25,16 @@ public class AuthController {
         return userService.login(loginDTO);
     }
 
-    @PostMapping(path = "/confirm-mail-reset-password")
-    public ResponseEntity confirmMailResetPassword(@RequestBody ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
-        return userService.confirmMailResetPassword(confirmMailResetPasswordDTO);
+    @PostMapping(path = "/confirm-via-mail")
+    public ResponseEntity confirmViaMail(@RequestBody ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
+        return userService.confirmViaMail(confirmMailResetPasswordDTO);
     }
 
     @PostMapping(path = "/confirm-user-email")
     public ResponseEntity confirmUserEmail(@RequestBody UserDTO userDTO) {
         return userService.confirmUserEmail(userDTO);
     }
+
     @PostMapping(path = "/change-password")
     public ResponseEntity changePassword(@RequestBody ChangePasswordDTO dto) {
         return userService.changePassword(dto);
@@ -48,12 +45,17 @@ public class AuthController {
         return userService.register(body);
     }
 
+    @PostMapping(path = "/logout")
+    public ResponseEntity logout(@RequestBody UserDTO userDTO, HttpServletRequest request) {
+        return userService.logout(userDTO, request);
+    }
+
     @PostMapping(path = "/info")
     public ResponseEntity getInfo(HttpServletRequest request) {
         if (request == null) {
             return ResponseEntity.badRequest().build();
         }
-       return  userService.getInfo(request);
+        return userService.getInfo(request);
 
     }
 }

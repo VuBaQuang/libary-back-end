@@ -36,7 +36,7 @@ public class UserService {
     MailService mailService;
 
     @Autowired
-    RedisTemplate<String, String> redisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -52,24 +52,46 @@ public class UserService {
         return userDAO.findUserById(id);
     }
 
-    public ResponseEntity confirmUserEmail(UserDTO userDTO) {
+    public ResponseEntity logout(UserDTO userDTO, HttpServletRequest request) {
         try {
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "confirm_success", ""));
+            String token = getToken(request);
+            String tokenInMemory = (String) redisTemplate.opsForValue().get(userDTO.getUsername());
+            if (tokenInMemory != null) {
+                if (tokenInMemory.equals(token)) {
+                    logger.info("TOKEN DELETED: " + redisTemplate.opsForValue().get(userDTO.getUsername()));
+                    redisTemplate.delete(token);
+                    redisTemplate.delete(userDTO.getUsername());
+                    return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "logout_success", ""));
+                }
+            }
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "logout_fail", ""));
         } catch (Exception e) {
-            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "confirm_fail", ""));
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
         }
     }
 
-    public ResponseEntity getInfo(HttpServletRequest request) {
-
+    public String getToken(HttpServletRequest request) {
         String auth = request.getHeader("Authorization");
         String accessToken = "";
         if (auth != null && auth.split(" ").length > 1) {
             accessToken = auth.split(" ")[1];
         }
-        logger.info("ACCESS TOKEN: " + accessToken);
+        return accessToken;
+    }
+
+    public ResponseEntity confirmUserEmail(UserDTO userDTO) {
         try {
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", getUserByToken(accessToken)));
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "confirm_success", ""));
+        } catch (Exception e) {
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
+        }
+    }
+
+    public ResponseEntity getInfo(HttpServletRequest request) {
+        String token = getToken(request);
+        logger.info("ACCESS TOKEN: " + token);
+        try {
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", getUserByToken(token)));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SimpleResponse("error", "server_error", null));
@@ -98,13 +120,19 @@ public class UserService {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 UserJwtDetails userDetails = (UserJwtDetails) authentication.getPrincipal();
                 String jwt = tokenProvider.generateToken(userDetails);
-                user.setToken(jwt);
                 userDAO.save(user);
-                System.out.println(redisTemplate.opsForValue().get(user.getUsername()));
+                String jwtOld = (String) redisTemplate.opsForValue().get(user.getUsername());
+                if (jwtOld != null) {
+                    logger.info("TOKEN OLD: " + redisTemplate.opsForValue().get(user.getUsername()));
+                    System.out.println( redisTemplate.opsForValue().get(jwtOld));
+                    redisTemplate.delete(user.getUsername());
+                    redisTemplate.delete(jwtOld);
+                }
+                redisTemplate.opsForValue().set(jwt, tokenProvider.getTokenExpiryFromJWT(jwt));
                 redisTemplate.opsForValue().set(user.getUsername(), jwt);
-                System.out.println(redisTemplate.opsForValue().get(user.getUsername()));
-//                UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwt, user.getName());
-                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "login_success", user));
+                logger.info("TOKEN NEW: " + redisTemplate.opsForValue().get(user.getUsername()));
+                UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(),jwt,user.getName(),user.getAvatar(),user.getRoles());
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "login_success", result));
             } else {
                 return ResponseEntity.ok().body(new SimpleResponse("error", "login_fail", null));
             }
@@ -151,15 +179,12 @@ public class UserService {
         Long userId = tokenProvider.getUserIdFromJWT(token);
         if (userId != null) {
             user = userDAO.findUserById(userId);
-            if (user != null) {
-                user.setToken(token);
-            }
             return user;
         }
         return null;
     }
 
-    public ResponseEntity confirmMailResetPassword(ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
+    public ResponseEntity confirmViaMail(ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
         User user = userDAO.findUserByUsername(confirmMailResetPasswordDTO.getUsername());
         if (user != null) {
             String code = RandomStringUtils.random(8, true, true);
