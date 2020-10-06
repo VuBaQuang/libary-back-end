@@ -47,6 +47,14 @@ public class UserService {
         return userDAO.findUserById(id);
     }
 
+    public ResponseEntity confirmUserEmail(UserDTO userDTO) {
+        try {
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "confirm_success", ""));
+        } catch (Exception e) {
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "confirm_fail", ""));
+        }
+    }
+
     public ResponseEntity getInfo(HttpServletRequest request) {
 
         String auth = request.getHeader("Authorization");
@@ -54,7 +62,7 @@ public class UserService {
         if (auth != null && auth.split(" ").length > 1) {
             accessToken = auth.split(" ")[1];
         }
-        logger.info("ACCESS TOKEN: "+accessToken);
+        logger.info("ACCESS TOKEN: " + accessToken);
         try {
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", getUserByToken(accessToken)));
         } catch (Exception e) {

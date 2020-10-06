@@ -3,6 +3,7 @@ package com.vbqkma.libarybackend.controller;
 import com.vbqkma.libarybackend.dto.ChangePasswordDTO;
 import com.vbqkma.libarybackend.dto.LoginDTO;
 import com.vbqkma.libarybackend.dto.RegisterDTO;
+import com.vbqkma.libarybackend.dto.UserDTO;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,10 @@ public class AuthController {
         return userService.login(loginDTO);
     }
 
+    @PostMapping(path = "/confirm-user-email")
+    public ResponseEntity confirmUserEmail(@RequestBody UserDTO userDTO) {
+        return userService.confirmUserEmail(userDTO);
+    }
     @PostMapping(path = "/change-password")
     public ResponseEntity changePassword(@RequestBody ChangePasswordDTO dto) {
         return userService.changePassword(dto);
