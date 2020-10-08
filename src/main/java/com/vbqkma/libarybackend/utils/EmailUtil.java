@@ -37,7 +37,7 @@ public class EmailUtil {
 
     public static String getContent(String title, String user, String content ,String titleButton, String hrefButton) {
         StringBuffer body
-                = new StringBuffer("<div style=\"border-style:solid;border-width:thin;border-color:#dadce0;border-radius:8px;padding:40px 20px\"\n" +
+                = new StringBuffer("<div style=\"border-style:solid;border-width:thin;margin: 0 25%;min-width: 520px;border-color:#dadce0;border-radius:8px;padding:40px 20px\"\n" +
                 "     align=\"center\" class=\"m_2188545635843415607mdv2rw\">\n" +
                 "  <img\n" +
                 "    src=\"http://actvn.edu.vn/images/logoico.png\"\n" +

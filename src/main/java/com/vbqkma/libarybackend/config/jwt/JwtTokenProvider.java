@@ -32,6 +32,25 @@ public class JwtTokenProvider {
       .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
       .compact();
   }
+  public String generateTokenFromString(String str) {
+    Date now = new Date();
+    Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);
+    // Tạo chuỗi json web token từ id của user.
+    return Jwts.builder()
+            .setSubject(str)
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
+            .compact();
+  }
+
+  public String getStringFromJWT(String token) {
+    Claims claims = Jwts.parser()
+            .setSigningKey(JWT_SECRET)
+            .parseClaimsJws(token)
+            .getBody();
+    return claims.getSubject();
+  }
 
   public Long getUserIdFromJWT(String token) {
     Claims claims = Jwts.parser()

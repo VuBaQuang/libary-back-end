@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.*;
+import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.service.MailService;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,14 @@ public class AuthController {
         return userService.login(loginDTO);
     }
 
-    @PostMapping(path = "/confirm-via-mail")
-    public ResponseEntity confirmViaMail(@RequestBody ConfirmMailResetPasswordDTO confirmMailResetPasswordDTO) {
-        return userService.confirmViaMail(confirmMailResetPasswordDTO);
+    @PostMapping(path = "/send-email-again")
+    public ResponseEntity sendEmailAgain(@RequestBody UserDTO UserDTO) {
+        return userService.sendEmailAgain(UserDTO);
     }
-
+    @PostMapping(path = "/check-exist")
+    public ResponseEntity checkExist(@RequestBody UserDTO userDTO) {
+        return userService.checkExist(userDTO);
+    }
     @PostMapping(path = "/confirm-user-email")
     public ResponseEntity confirmUserEmail(@RequestBody UserDTO userDTO) {
         return userService.confirmUserEmail(userDTO);

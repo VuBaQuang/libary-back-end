@@ -1,10 +1,12 @@
 package com.vbqkma.libarybackend.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 
-public class UserDTO {
+public class UserDTO extends SimpleDTO {
     private Long id;
     private String username;
     private String email;
