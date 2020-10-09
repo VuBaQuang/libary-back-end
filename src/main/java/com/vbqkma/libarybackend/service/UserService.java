@@ -31,22 +31,22 @@ import javax.servlet.http.HttpServletRequest;
 public class UserService {
     private static final Logger logger = LogManager.getLogger(UserService.class);
     @Autowired
-    UserDAO userDAO;
+    private UserDAO userDAO;
 
     @Autowired
     private JwtTokenProvider tokenProvider;
 
     @Autowired
-    MailService mailService;
+    private MailService mailService;
 
     @Autowired
-    RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    PasswordEncoder encoder;
+    private PasswordEncoder encoder;
 
     public User findUserByUsername(String name) {
         return userDAO.findUserByUsername(name);

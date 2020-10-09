@@ -1,8 +1,12 @@
 package com.vbqkma.libarybackend.model;
+
 import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -27,13 +31,18 @@ public class User {
     private String address;
     private String roles;
 
-    @ManyToMany(cascade = { CascadeType.ALL })
+    @CreationTimestamp
+    private Date createdAt;
+
+    @ManyToMany( fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value= FetchMode.SELECT)
     @JoinTable(
             name = "51_users_groups",
-            joinColumns = { @JoinColumn(name = "user_id") },
-            inverseJoinColumns = { @JoinColumn(name = "group_id") }
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "group_id")}
     )
     Set<Group> groups = new HashSet<>();
+
     public User() {
     }
 

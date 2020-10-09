@@ -13,18 +13,13 @@ public class JwtTokenProvider {
   @Value("${auth.jwt.secret.key}")
   private String JWT_SECRET;
 
-  //Thời gian có hiệu lực của chuỗi jwt
   @Value("${auth.token.ttl}")
   private Integer JWT_EXPIRATION;
 
-  /**
-   * Generates a token from a principal object. Embed the refresh token in the jwt
-   * so that a new jwt can be created
-   */
+
   public String generateToken(UserJwtDetails userDetails) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);
-    // Tạo chuỗi json web token từ id của user.
     return Jwts.builder()
       .setSubject(Long.toString(userDetails.getUser().getId()))
       .setIssuedAt(now)
@@ -35,7 +30,6 @@ public class JwtTokenProvider {
   public String generateTokenFromString(String str) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);
-    // Tạo chuỗi json web token từ id của user.
     return Jwts.builder()
             .setSubject(str)
             .setIssuedAt(now)
