@@ -10,21 +10,14 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "51_roles")
-public class Role {
+@Table(name = "51_features")
+public class Feature {
     @Id
-    @Column(name = "role_id")
+    @Column(name = "feature_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
     private String code;
 
-    @ManyToMany(cascade = { CascadeType.ALL })
-    @JoinTable(
-            name = "51_roles_groups",
-            joinColumns = { @JoinColumn(name = "role_id") },
-            inverseJoinColumns = { @JoinColumn(name = "group_id") }
-    )
-    Set<Group> groups = new HashSet<>();
 }

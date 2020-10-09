@@ -239,7 +239,6 @@ public class UserService {
                         "Liên hệ quản trị viên",
                         "https://www.facebook.com/profile.php?id=100013548901162"
                 );
-
                 return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Đã gửi email, vui lòng nhập mã xác nhận từ email", ""));
             }
             return ResponseEntity.ok().body(new SimpleResponse("ERROR", "confirm_error", ""));

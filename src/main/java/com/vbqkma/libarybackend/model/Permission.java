@@ -1,5 +1,4 @@
 package com.vbqkma.libarybackend.model;
-
 import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,18 +10,14 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "51_groups")
-public class Group {
+@Table(name = "51_permissions")
+public class Permission {
     @Id
-    @Column(name = "group_id")
+    @Column(name = "permission_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
     private String code;
-    private String roles;
-    private String rolesJson;
-
-    @ManyToMany(mappedBy = "groups")
-    private Set<User> users = new HashSet<>();
+    private String only;
 }

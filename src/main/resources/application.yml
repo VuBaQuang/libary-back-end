@@ -10,7 +10,7 @@ spring:
   datasource:
     password: Vbq@23111998
     url: jdbc:mysql://localhost:3306/at130444
-    username: vubaquang
+    username: root
   jpa:
     hibernate:
       ddl-auto: update

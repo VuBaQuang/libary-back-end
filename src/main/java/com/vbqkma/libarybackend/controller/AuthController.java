@@ -1,7 +1,6 @@
 package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.*;
-import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.service.MailService;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +29,12 @@ public class AuthController {
     public ResponseEntity sendEmailAgain(@RequestBody UserDTO UserDTO) {
         return userService.sendEmailAgain(UserDTO);
     }
+
     @PostMapping(path = "/check-exist")
     public ResponseEntity checkExist(@RequestBody UserDTO userDTO) {
         return userService.checkExist(userDTO);
     }
+
     @PostMapping(path = "/confirm-user-email")
     public ResponseEntity confirmUserEmail(@RequestBody UserDTO userDTO) {
         return userService.confirmUserEmail(userDTO);
@@ -56,6 +57,7 @@ public class AuthController {
 
     @PostMapping(path = "/info")
     public ResponseEntity getInfo(HttpServletRequest request) {
+        System.out.println("info");
         if (request == null) {
             return ResponseEntity.badRequest().build();
         }
