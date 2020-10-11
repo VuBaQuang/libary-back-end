@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/rest/auth")
@@ -21,8 +22,8 @@ public class AuthController {
     MailService mailService;
 
     @PostMapping(path = "/login")
-    public ResponseEntity login(@RequestBody LoginDTO loginDTO) {
-        return userService.login(loginDTO);
+    public ResponseEntity login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
+        return userService.login(loginDTO,response);
     }
 
     @PostMapping(path = "/send-email-again")
@@ -51,16 +52,12 @@ public class AuthController {
     }
 
     @PostMapping(path = "/logout")
-    public ResponseEntity logout(@RequestBody UserDTO userDTO, HttpServletRequest request) {
-        return userService.logout(userDTO, request);
+    public ResponseEntity logout(HttpServletRequest request,HttpServletResponse response) {
+        return userService.logout(request,response);
     }
 
     @PostMapping(path = "/info")
     public ResponseEntity getInfo(HttpServletRequest request) {
-        System.out.println("info");
-        if (request == null) {
-            return ResponseEntity.badRequest().build();
-        }
         return userService.getInfo(request);
 
     }

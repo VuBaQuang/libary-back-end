@@ -17,7 +17,7 @@ public class JwtTokenProvider {
   private Integer JWT_EXPIRATION;
 
 
-  public String generateToken(UserJwtDetails userDetails) {
+  public String generateTokenByid(UserJwtDetails userDetails) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);
     return Jwts.builder()
@@ -27,6 +27,18 @@ public class JwtTokenProvider {
       .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
       .compact();
   }
+
+  public String generateTokenByUsername(UserJwtDetails userDetails) {
+    Date now = new Date();
+    Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);
+    return Jwts.builder()
+            .setSubject(userDetails.getUser().getUsername())
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
+            .compact();
+  }
+
   public String generateTokenFromString(String str) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION * 1000);

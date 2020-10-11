@@ -7,6 +7,7 @@ import com.vbqkma.libarybackend.dto.*;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
 import com.vbqkma.libarybackend.utils.EmailUtil;
+import com.vbqkma.libarybackend.utils.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +26,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
@@ -55,6 +60,20 @@ public class UserService {
     public ResponseEntity getAll(UserDTO userDTO) {
         try {
             Pageable pageable = PageRequest.of(userDTO.getPage() > 0 ? userDTO.getPage() - 1 : 0, userDTO.getPageSize() > 0 ? userDTO.getPageSize() : 10);
+            if (userDTO.getGroups() != null && userDTO.getGroups().size() > 0) {
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Lấy thông tin người dùng thành công", userDAO.findDistinctUserByGroupsIn(userDTO.getGroups(), pageable)));
+            }
+            if (!StringUtils.isEmpty(userDTO.getName()) || !StringUtils.isEmpty(userDTO.getUsername()) || !StringUtils.isEmpty(userDTO.getEmail()) || !StringUtils.isEmpty(userDTO.getPhone())) {
+                return ResponseEntity.ok().body(
+                        new SimpleResponse("SUCCESS", "Lấy thông tin người dùng thành công",
+                                userDAO.
+                                        findAllByNameContainingIgnoreCaseOrUsernameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+                                                userDTO.getName(),
+                                                userDTO.getUsername(),
+                                                userDTO.getEmail(),
+                                                userDTO.getPhone(),
+                                                pageable)));
+            }
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Lấy thông tin người dùng thành công", userDAO.findAll(pageable)));
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,19 +96,36 @@ public class UserService {
         return userDAO.findUserById(id);
     }
 
-    public ResponseEntity logout(UserDTO userDTO, HttpServletRequest request) {
+    public ResponseEntity logout(HttpServletRequest request, HttpServletResponse response) {
         try {
             String token = getToken(request);
-            String tokenInMemory = (String) redisTemplate.opsForValue().get(userDTO.getUsername());
-            if (tokenInMemory != null) {
-                if (tokenInMemory.equals(token)) {
-                    logger.info("TOKEN DELETED: " + redisTemplate.opsForValue().get(userDTO.getUsername()));
-                    redisTemplate.delete(token);
-                    redisTemplate.delete(userDTO.getUsername());
-                    return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "logout_success", ""));
-                }
+            User user = getUserByToken(token);
+            String jwtTokenOld = (String) redisTemplate.opsForValue().get(user.getId().toString());
+            String jwtAuthOld = (String) redisTemplate.opsForValue().get(user.getUsername());
+
+            if (jwtAuthOld != null) {
+                redisTemplate.delete(user.getId().toString());
+                redisTemplate.delete(jwtAuthOld);
+                logger.info("Clear jwt auth old success !");
             }
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "logout_fail", ""));
+
+            if (jwtTokenOld != null) {
+                redisTemplate.delete(user.getUsername());
+                redisTemplate.delete(jwtTokenOld);
+                logger.info("Clear jwt token old success !");
+            }
+            Cookie cookie_token = new Cookie("Kma-Token", null);
+            cookie_token.setMaxAge(0);
+            cookie_token.setHttpOnly(true);
+            cookie_token.setPath("/");
+
+            Cookie cookie_auth = new Cookie("Kma-Auth", null);
+            cookie_auth.setMaxAge(0);
+            cookie_auth.setHttpOnly(true);
+            cookie_auth.setPath("/");
+            response.addCookie(cookie_token);
+            response.addCookie(cookie_auth);
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "logout_success", ""));
         } catch (Exception e) {
             return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
         }
@@ -108,7 +144,8 @@ public class UserService {
         String token = getToken(request);
         logger.info("ACCESS TOKEN: " + token);
         try {
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", getUserByToken(token)));
+            User user = getUserByToken(token);
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", user));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SimpleResponse("error", "server_error", null));
@@ -118,7 +155,7 @@ public class UserService {
 
     public ResponseEntity register(RegisterDTO user) {
         try {
-            User model = new User(null, user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone(), user.getAddress(), "[\"admin\"]");
+            User model = new User(null, user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone(), user.getAddress());
             model.setPassword(encoder.encode(user.getPassword()));
             userDAO.save(model);
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "register_success", model));
@@ -128,27 +165,57 @@ public class UserService {
         }
     }
 
-    public ResponseEntity login(LoginDTO loginDTO) {
+    public ResponseEntity login(LoginDTO loginDTO, HttpServletResponse response) {
         try {
             User user = userDAO.findUserByUsername(loginDTO.getUsername());
             if (user != null) {
                 Authentication authentication = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                UserJwtDetails userDetails = (UserJwtDetails) authentication.getPrincipal();
-                String jwt = tokenProvider.generateToken(userDetails);
-                userDAO.save(user);
-                String jwtOld = (String) redisTemplate.opsForValue().get(user.getUsername());
-                if (jwtOld != null) {
-                    logger.info("TOKEN OLD: " + redisTemplate.opsForValue().get(user.getUsername()));
-                    System.out.println(redisTemplate.opsForValue().get(jwtOld));
-                    redisTemplate.delete(user.getUsername());
-                    redisTemplate.delete(jwtOld);
+                if (user.getIsLock() != 1) {
+                    return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Tài khoản bị khóa", null));
                 }
-                redisTemplate.opsForValue().set(jwt, tokenProvider.getTokenExpiryFromJWT(jwt));
-                redisTemplate.opsForValue().set(user.getUsername(), jwt);
-                logger.info("TOKEN NEW: " + redisTemplate.opsForValue().get(user.getUsername()));
-                UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwt, user.getName(), user.getAvatar(), user.getRoles());
+                UserJwtDetails userDetails = (UserJwtDetails) authentication.getPrincipal();
+
+                String jwtToken = tokenProvider.generateTokenByid(userDetails);
+                String jwtAuth = tokenProvider.generateTokenByUsername(userDetails);
+                logger.info("Generate Token success !");
+
+                String jwtTokenOld = (String) redisTemplate.opsForValue().get(user.getId().toString());
+                String jwtAuthOld = (String) redisTemplate.opsForValue().get(user.getUsername());
+                if (jwtAuthOld != null) {
+                    redisTemplate.delete(user.getId().toString());
+                    redisTemplate.delete(jwtAuthOld);
+                    logger.info("Clear jwt auth old success !");
+                }
+                if (jwtTokenOld != null) {
+                    redisTemplate.delete(user.getUsername());
+                    redisTemplate.delete(jwtTokenOld);
+                    logger.info("Clear jwt token old success !");
+                }
+                redisTemplate.opsForValue().set(jwtToken, user.getId(), Duration.ofHours(1));
+                redisTemplate.opsForValue().set(jwtAuth, jwtToken, Duration.ofHours(1));
+
+                redisTemplate.opsForValue().set(user.getId().toString(), jwtToken, Duration.ofHours(1));
+                redisTemplate.opsForValue().set(user.getUsername(), jwtAuth, Duration.ofHours(1));
+
+                UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwtToken, user.getName(), user.getAvatar(), user.getIsLock());
+
+                Cookie cookie_token = new Cookie("Kma-Token", jwtToken);
+                cookie_token.setMaxAge(3600);
+                cookie_token.setSecure(false);
+                cookie_token.setHttpOnly(false);
+                cookie_token.setPath("/");
+
+                Cookie cookie_auth = new Cookie("Kma-Auth", jwtAuth);
+                cookie_auth.setMaxAge(3600);
+                cookie_auth.setSecure(true);
+                cookie_auth.setHttpOnly(true);
+                cookie_auth.setPath("/");
+
+                response.addCookie(cookie_token);
+                response.addCookie(cookie_auth);
+
                 return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "login_success", result));
             } else {
                 return ResponseEntity.ok().body(new SimpleResponse("ERROR", "login_fail", null));
@@ -202,10 +269,10 @@ public class UserService {
     }
 
     public ResponseEntity sendEmailAgain(UserDTO userDTO) {
-        try{
+        try {
             String jwt = tokenProvider.generateTokenFromString(RandomStringUtils.random(8, true, true));
             redisTemplate.delete("confirmViaMail" + userDTO.getUsername());
-            redisTemplate.opsForValue().set("confirmViaMail" + userDTO.getUsername(), jwt);
+            redisTemplate.opsForValue().set("confirmViaMail" + userDTO.getUsername(), jwt, Duration.ofMinutes(15));
             mailService.sendMail(
                     userDTO.getEmail(),
                     "Reset mật khẩu",
@@ -216,7 +283,7 @@ public class UserService {
                     "https://www.facebook.com/profile.php?id=100013548901162"
             );
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Gửi lại email thành công", null));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Gửi lại email thất bại", null));
         }
@@ -229,7 +296,7 @@ public class UserService {
             if (user != null) {
                 String code = RandomStringUtils.random(8, true, true);
                 String jwt = tokenProvider.generateTokenFromString(code);
-                redisTemplate.opsForValue().set("confirmViaMail" + user.getUsername(), jwt);
+                redisTemplate.opsForValue().set("confirmViaMail" + user.getUsername(), jwt, Duration.ofMinutes(15));
                 mailService.sendMail(
                         user.getEmail(),
                         "Reset mật khẩu",

@@ -1,7 +1,11 @@
 package com.vbqkma.libarybackend.dto;
 
+import com.vbqkma.libarybackend.model.Group;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -15,12 +19,12 @@ public class UserDTO extends SimpleDTO {
     private String token;
     private String name;
     private String avatar;
-    private String roles;
-
+    private Integer isLock;
+    private Set<Group> groups = new HashSet<>();
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String username, String email, String phone, String address, String token, String name, String avatar, String roles) {
+    public UserDTO(Long id, String username, String email, String phone, String address, String token, String name, String avatar, Integer isLock) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -29,6 +33,6 @@ public class UserDTO extends SimpleDTO {
         this.token = token;
         this.name = name;
         this.avatar = avatar;
-        this.roles = roles;
+        this.isLock = isLock;
     }
 }

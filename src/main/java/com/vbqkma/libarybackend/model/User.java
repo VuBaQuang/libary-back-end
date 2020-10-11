@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -29,13 +30,13 @@ public class User {
     private String email;
     private String phone;
     private String address;
-    private String roles;
+    private Integer isLock;
 
     @CreationTimestamp
     private Date createdAt;
 
-    @ManyToMany( fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @Fetch(value= FetchMode.SELECT)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SELECT)
     @JoinTable(
             name = "51_users_groups",
             joinColumns = {@JoinColumn(name = "user_id")},
@@ -46,7 +47,7 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String username, String password, String name, String email, String phone, String address, String roles) {
+    public User(Long id, String username, String password, String name, String email, String phone, String address) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -54,6 +55,5 @@ public class User {
         this.email = email;
         this.phone = phone;
         this.address = address;
-        this.roles = roles;
     }
 }
