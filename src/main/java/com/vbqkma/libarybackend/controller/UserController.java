@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.UserDTO;
+import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,4 +19,8 @@ public class UserController {
         return userService.getAll(userDTO);
     }
 
+    @PostMapping(path = "/")
+    public ResponseEntity saveOrUpdate(@RequestBody UserDTO userDTO) {
+        return userService.saveOrUpdate(userDTO);
+    }
 }

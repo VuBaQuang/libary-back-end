@@ -53,6 +53,11 @@ public class UserService {
     @Autowired
     private PasswordEncoder encoder;
 
+    public ResponseEntity saveOrUpdate(UserDTO userDTO) {
+
+        return null;
+    }
+
     public User findUserByUsername(String name) {
         return userDAO.findUserByUsername(name);
     }

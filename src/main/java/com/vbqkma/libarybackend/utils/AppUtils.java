@@ -20,6 +20,10 @@ public class AppUtils {
     private static final Logger logger = LogManager.getLogger(AppUtils.class);
     private static final List<String> ALLOW_LIST = Arrays.asList(
             "/rest/auth/login",
+            "/rest/auth/send-email-again",
+            "/rest/auth/check-exist",
+            "/rest/auth/confirm-user-email",
+            "/rest/auth/register",
             "/favicon.ico"
     );
 

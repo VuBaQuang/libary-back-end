@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
@@ -19,6 +20,10 @@ public class UserDTO extends SimpleDTO {
     private String token;
     private String name;
     private String avatar;
+    private Long groupId;
+    private List<Long> userIds;
+    private Boolean isJoinGroup;
+    private Boolean isLeaveGroup;
     private Integer isLock;
     private Set<Group> groups = new HashSet<>();
     public UserDTO() {
