@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.dto;
 
 import com.vbqkma.libarybackend.model.Group;
+import com.vbqkma.libarybackend.model.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,7 +22,9 @@ public class UserDTO extends SimpleDTO {
     private String name;
     private String avatar;
     private Long groupId;
+    private Group group;
     private List<Long> userIds;
+    private List<User> users;
     private Boolean isJoinGroup;
     private Boolean isLeaveGroup;
     private Integer isLock;

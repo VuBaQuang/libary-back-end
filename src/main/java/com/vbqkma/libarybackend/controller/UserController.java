@@ -19,7 +19,7 @@ public class UserController {
         return userService.getAll(userDTO);
     }
 
-    @PostMapping(path = "/")
+    @PostMapping(path = "")
     public ResponseEntity saveOrUpdate(@RequestBody UserDTO userDTO) {
         return userService.saveOrUpdate(userDTO);
     }

@@ -4,6 +4,7 @@ import com.vbqkma.libarybackend.config.jwt.JwtTokenProvider;
 import com.vbqkma.libarybackend.config.jwt.UserJwtDetails;
 import com.vbqkma.libarybackend.dao.UserDAO;
 import com.vbqkma.libarybackend.dto.*;
+import com.vbqkma.libarybackend.model.Group;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
 import com.vbqkma.libarybackend.utils.EmailUtil;
@@ -30,6 +31,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -54,7 +56,24 @@ public class UserService {
     private PasswordEncoder encoder;
 
     public ResponseEntity saveOrUpdate(UserDTO userDTO) {
-
+        if (userDTO.getIsJoinGroup()!=null && userDTO.getIsJoinGroup()) {
+            for (int i = 0; i < userDTO.getUserIds().size(); i++) {
+                User user = userDAO.findUserById(userDTO.getUserIds().get(i));
+                Set<Group> groups =  user.getGroups();
+                groups.add(userDTO.getGroup());
+                user.setGroups(groups);
+                userDAO.save(user);
+            }
+        }
+        if (userDTO.getIsLeaveGroup()!=null && userDTO.getIsLeaveGroup()) {
+            for (int i = 0; i < userDTO.getUserIds().size(); i++) {
+                User user = userDAO.findUserById(userDTO.getUserIds().get(i));
+                Set<Group> groups =  user.getGroups();
+                groups.remove(userDTO.getGroup());
+                user.setGroups(groups);
+                userDAO.save(user);
+            }
+        }
         return null;
     }
 
