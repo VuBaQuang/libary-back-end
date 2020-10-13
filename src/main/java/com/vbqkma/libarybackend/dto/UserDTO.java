@@ -19,6 +19,7 @@ public class UserDTO extends SimpleDTO {
     private String phone;
     private String address;
     private String token;
+    private String password;
     private String name;
     private String avatar;
     private Long groupId;

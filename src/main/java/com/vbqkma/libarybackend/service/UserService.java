@@ -58,6 +58,42 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder encoder;
+    public ResponseEntity createNewPassword(UserDTO userDTO) {
+        try {
+            String token = (String) redisTemplate.opsForValue().get("createNewPassword" + userDTO.getUsername());
+            if (token.equals(userDTO.getToken())) {
+//                redisTemplate.opsForValue().set("createNewPassword"+ userDTO.getUsername(),userDTO.getToken());
+                User user = userDAO.findUserByUsername(userDTO.getUsername());
+                user.setPassword(encoder.encode(userDTO.getPassword()));
+                userDAO.save(user);
+                redisTemplate.delete("createNewPassword" + userDTO.getUsername());
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Tạo mật khẩu mới thành công, Đăng nhập lại", null));
+            } else {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Xác nhận thất bại, token không chính xác", null));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
+
+        }
+    }
+
+    public ResponseEntity confirmTokenViaEmail(UserDTO userDTO) {
+        try {
+            String token = (String) redisTemplate.opsForValue().get("confirmViaMail" + userDTO.getUsername());
+            if (token.equals(userDTO.getToken())) {
+                redisTemplate.opsForValue().set("createNewPassword"+ userDTO.getUsername(),userDTO.getToken());
+                redisTemplate.delete("confirmViaMail" + userDTO.getUsername());
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Xác nhận thành công", null));
+            } else {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Xác nhận thất bại, token không chính xác", null));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
+
+        }
+    }
 
     @Transactional
     public ResponseEntity saveOrUpdate(UserDTO userDTO) {
@@ -341,11 +377,12 @@ public class UserService {
             String jwt = tokenProvider.generateTokenFromString(RandomStringUtils.random(8, true, true));
             redisTemplate.delete("confirmViaMail" + userDTO.getUsername());
             redisTemplate.opsForValue().set("confirmViaMail" + userDTO.getUsername(), jwt, Duration.ofMinutes(15));
+          User user = userDAO.findUserByUsername(userDTO.getUsername());
             mailService.sendMail(
                     userDTO.getEmail(),
                     "Reset mật khẩu",
                     "Xác nhận reset mật khẩu",
-                    userDTO.getUsername() + " - " + userDTO.getName(),
+                    userDTO.getUsername() + " - " + user.getName(),
                     "Mã xác nhận của bạn là: " + jwt + ". Nếu bạn không thực hiện hành động này vui lòng liên hệ với quản trị viên ngay bây giờ.",
                     "Liên hệ quản trị viên",
                     "https://www.facebook.com/profile.php?id=100013548901162"

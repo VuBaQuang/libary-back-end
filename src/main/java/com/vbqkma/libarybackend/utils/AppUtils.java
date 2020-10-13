@@ -21,7 +21,9 @@ public class AppUtils {
     private static final List<String> ALLOW_LIST = Arrays.asList(
             "/rest/auth/login",
             "/rest/auth/send-email-again",
+            "/rest/auth/confirm-token-via-email",
             "/rest/auth/check-exist",
+            "/rest/auth/create-new-password",
             "/rest/auth/confirm-user-email",
             "/rest/auth/register",
             "/favicon.ico"
@@ -84,13 +86,10 @@ public class AppUtils {
                 if (uri.contains("/users")) {
                     return user.getGroups().stream().anyMatch(group ->
                             group.getCode().contains("user_manage") );
-
-
                 }
                 if (uri.contains("/groups")) {
                     return user.getGroups().stream().anyMatch(group ->
                             group.getCode().contains("group_manage"));
-
                 }
                 return true;
             }

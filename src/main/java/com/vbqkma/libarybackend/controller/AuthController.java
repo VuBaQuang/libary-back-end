@@ -31,6 +31,10 @@ public class AuthController {
         return userService.sendEmailAgain(UserDTO);
     }
 
+    @PostMapping(path = "/create-new-password")
+    public ResponseEntity createNewPassword(@RequestBody UserDTO UserDTO) {
+        return userService.createNewPassword(UserDTO);
+    }
     @PostMapping(path = "/check-exist")
     public ResponseEntity checkExist(@RequestBody UserDTO userDTO) {
         return userService.checkExist(userDTO);
@@ -40,7 +44,10 @@ public class AuthController {
     public ResponseEntity confirmUserEmail(@RequestBody UserDTO userDTO) {
         return userService.confirmUserEmail(userDTO);
     }
-
+    @PostMapping(path = "/confirm-token-via-email")
+    public ResponseEntity confirmTokenViaEmail(@RequestBody UserDTO userDTO) {
+        return userService.confirmTokenViaEmail(userDTO);
+    }
     @PostMapping(path = "/change-password")
     public ResponseEntity changePassword(@RequestBody ChangePasswordDTO dto) {
         return userService.changePassword(dto);
