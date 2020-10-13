@@ -3,16 +3,11 @@ package com.vbqkma.libarybackend.config;
 import com.vbqkma.libarybackend.utils.AppUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.header.Header;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;

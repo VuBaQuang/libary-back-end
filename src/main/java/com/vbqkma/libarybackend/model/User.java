@@ -35,7 +35,7 @@ public class User {
     @CreationTimestamp
     private Date createdAt;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL, CascadeType.REMOVE})
     @Fetch(value = FetchMode.SELECT)
     @JoinTable(
             name = "51_users_groups",

@@ -2,18 +2,17 @@ package com.vbqkma.libarybackend.service;
 
 import com.vbqkma.libarybackend.config.jwt.JwtTokenProvider;
 import com.vbqkma.libarybackend.config.jwt.UserJwtDetails;
+import com.vbqkma.libarybackend.dao.GroupDAO;
 import com.vbqkma.libarybackend.dao.UserDAO;
 import com.vbqkma.libarybackend.dto.*;
 import com.vbqkma.libarybackend.model.Group;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
-import com.vbqkma.libarybackend.utils.EmailUtil;
 import com.vbqkma.libarybackend.utils.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,19 +25,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
     private static final Logger logger = LogManager.getLogger(UserService.class);
     @Autowired
     private UserDAO userDAO;
+
+    @Autowired
+    private GroupDAO groupDAO;
 
     @Autowired
     private JwtTokenProvider tokenProvider;
@@ -55,26 +59,66 @@ public class UserService {
     @Autowired
     private PasswordEncoder encoder;
 
+    @Transactional
     public ResponseEntity saveOrUpdate(UserDTO userDTO) {
-        if (userDTO.getIsJoinGroup()!=null && userDTO.getIsJoinGroup()) {
-            for (int i = 0; i < userDTO.getUserIds().size(); i++) {
-                User user = userDAO.findUserById(userDTO.getUserIds().get(i));
-                Set<Group> groups =  user.getGroups();
-                groups.add(userDTO.getGroup());
-                user.setGroups(groups);
-                userDAO.save(user);
+        try {
+            if (userDTO.getUserIds() != null && userDTO.getUserIds().size() > 0) {
+                for (int i = 0; i < userDTO.getUserIds().size(); i++) {
+                    User user = userDAO.findUserById(userDTO.getUserIds().get(i));
+                    Set<Group> groups = user.getGroups();
+                    if (userDTO.getIsJoinGroup() != null && userDTO.getIsJoinGroup()) {
+                        groups.add(userDTO.getGroup());
+                    }
+                    if (userDTO.getIsLeaveGroup() != null && userDTO.getIsLeaveGroup()) {
+                        groups.remove(userDTO.getGroup());
+                    }
+                    user.setGroups(groups);
+
+                    Integer lock = user.getIsLock();
+                    if (userDTO.getIsLockUsers() != null && userDTO.getIsLockUsers()) {
+                        lock = 0;
+                    }
+                    if (userDTO.getIsUnlockUsers() != null && userDTO.getIsUnlockUsers()) {
+                        lock = 1;
+                    }
+                    user.setIsLock(lock);
+                    userDAO.save(user);
+                }
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Cập nhật người dùng thành công", null));
             }
-        }
-        if (userDTO.getIsLeaveGroup()!=null && userDTO.getIsLeaveGroup()) {
-            for (int i = 0; i < userDTO.getUserIds().size(); i++) {
-                User user = userDAO.findUserById(userDTO.getUserIds().get(i));
-                Set<Group> groups =  user.getGroups();
-                groups.remove(userDTO.getGroup());
-                user.setGroups(groups);
-                userDAO.save(user);
+            User model = new User(null, userDTO.getUsername(), null, userDTO.getName(), userDTO.getEmail(), userDTO.getPhone(), userDTO.getAddress());
+
+            if (userDTO.getGroups() != null && userDTO.getGroups().size() > 0) {
+                Set<Group> groups = new HashSet<>();
+                for (Long id : userDTO.getGroupIds()) {
+                    Group group = groupDAO.findById(id).get();
+                    groups.add(group);
+                }
+                model.setGroups(groups);
             }
+            model.setAvatar("https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80");
+            model.setIsLock(1);
+            userDAO.save(model);
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Thêm người dùng thành công", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Cập nhật người dùng thất bại", null));
         }
-        return null;
+    }
+
+    @Transactional
+    public ResponseEntity deletes(List<User> users) {
+        try {
+            users.forEach(user -> {
+                user.setGroups(new HashSet<>());
+            });
+            userDAO.saveAll(users);
+            userDAO.deleteAll(users);
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Xóa người dùng thành công", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Xóa người dùng thất bại", null));
+        }
     }
 
     public User findUserByUsername(String name) {

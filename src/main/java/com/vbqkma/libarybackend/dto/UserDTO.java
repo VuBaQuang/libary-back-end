@@ -24,9 +24,12 @@ public class UserDTO extends SimpleDTO {
     private Long groupId;
     private Group group;
     private List<Long> userIds;
+    private List<Long> groupIds;
     private List<User> users;
     private Boolean isJoinGroup;
     private Boolean isLeaveGroup;
+    private Boolean isLockUsers;
+    private Boolean isUnlockUsers;
     private Integer isLock;
     private Set<Group> groups = new HashSet<>();
     public UserDTO() {

@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -23,5 +24,6 @@ public class Group {
     private String code;
     private String roles;
     private String rolesJson;
-
+    @CreationTimestamp
+    private Date createdAt;
 }

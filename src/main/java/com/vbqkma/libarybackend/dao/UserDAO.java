@@ -17,6 +17,7 @@ public interface UserDAO extends JpaRepository<User, Long> {
     public List<User> findUsersByUsername(String name);
     public User findUserByEmail(String email);
     public User findUserById(Long id);
+    public void deleteAllByIdIn(List<Long> ids);
     public Page<User> findDistinctUserByGroupsIn(Set<Group> groups, Pageable pageable);
     public Page<User> findAllByNameContainingIgnoreCaseOrUsernameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(String name, String username, String email, String phone, Pageable pageable);
 }

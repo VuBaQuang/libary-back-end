@@ -6,4 +6,6 @@ import lombok.Data;
 public class SimpleDTO {
     private int page;
     private int pageSize;
+    Boolean conditionSort;
+    String sortField;
 }

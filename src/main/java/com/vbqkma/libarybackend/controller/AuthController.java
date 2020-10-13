@@ -55,7 +55,6 @@ public class AuthController {
     public ResponseEntity logout(HttpServletRequest request,HttpServletResponse response) {
         return userService.logout(request,response);
     }
-
     @PostMapping(path = "/info")
     public ResponseEntity getInfo(HttpServletRequest request) {
         return userService.getInfo(request);

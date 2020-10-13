@@ -75,12 +75,26 @@ public class AppUtils {
             UserService userService = LibaryBackEndApplication.ctx.getBean(UserService.class);
             Long idUser = Long.parseLong(opsVal.get(sessionToken).toString());
             User user = userService.findUserById(idUser);
-            if(!uri.equalsIgnoreCase("/rest/auth/logout")){
+            if (!uri.equalsIgnoreCase("/rest/auth/logout")) {
                 if (user.getIsLock() != 1) {
                     return false;
                 }
             }
-            return opsVal.get(sessionToken) != null && jwtTokenByAuth != null && jwtTokenByAuth.equals(sessionToken);
+            if (opsVal.get(sessionToken) != null && jwtTokenByAuth != null && jwtTokenByAuth.equals(sessionToken)) {
+                if (uri.contains("/users")) {
+                    return user.getGroups().stream().anyMatch(group ->
+                            group.getCode().contains("user_manage") );
+
+
+                }
+                if (uri.contains("/groups")) {
+                    return user.getGroups().stream().anyMatch(group ->
+                            group.getCode().contains("group_manage"));
+
+                }
+                return true;
+            }
+            return false;
 
         }
         return false;

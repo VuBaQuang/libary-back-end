@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/rest/users")
 public class UserController {
@@ -23,4 +25,10 @@ public class UserController {
     public ResponseEntity saveOrUpdate(@RequestBody UserDTO userDTO) {
         return userService.saveOrUpdate(userDTO);
     }
+
+    @PostMapping(path = "/deletes")
+    public ResponseEntity deletes(@RequestBody List<User> users) {
+        return userService.deletes(users);
+    }
+
 }
