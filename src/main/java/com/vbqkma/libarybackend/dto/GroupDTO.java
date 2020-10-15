@@ -11,4 +11,5 @@ public class GroupDTO  extends  SimpleDTO{
     private String code;
     private String roles;
     private String rolesJson;
+    private String searchName;
 }

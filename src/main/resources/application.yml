@@ -7,6 +7,16 @@ server:
     port: 8443
 #  openssl pkcs12 -export -in ../library-front-end/localhost.pem -inkey ../library-front-end/localhost-key.pem -name vubaquangkma -out src/main/resources/PKCS12.p12
 spring:
+    data:
+#        elasticsearch:
+#            repositories:
+#                enabled: false
+#        jpa:
+#            repositories:
+#                enabled: false
+        redis:
+            repositories:
+                enabled: false
     datasource:
         password: Vbq@23111998
         url: jdbc:mysql://localhost:3306/at130444

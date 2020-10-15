@@ -32,6 +32,9 @@ public class GroupService {
                     pageable = PageRequest.of(dto.getPage() > 0 ? dto.getPage() - 1 : 0, dto.getPageSize() > 0 ? dto.getPageSize() : 10, Sort.by(dto.getSortField()).descending());
                 }
             }
+            if(dto.getSearchName()!=null && !dto.getSearchName().equalsIgnoreCase("")){
+                return ResponseEntity.ok().body(new SimpleResponse("GET_SUCCESS", "", groupDAO.findGroupsByName(dto.getSearchName(),pageable)));
+            }
             return ResponseEntity.ok().body(new SimpleResponse("GET_SUCCESS", "", groupDAO.findAll(pageable)));
         } catch (Exception e) {
             e.printStackTrace();

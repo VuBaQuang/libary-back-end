@@ -24,20 +24,10 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<GroupDTO> saveOrUpdate(@RequestBody Group group) {
+    public ResponseEntity saveOrUpdate(@RequestBody Group group) {
         return groupService.saveOrUpdate(group);
     }
-//
-//    @PostMapping("/get")
-//    public ResponseEntity<GroupDTO> findById(@RequestBody GroupForm groupForm) {
-//        return groupService.findById(groupForm);
-//    }
-//
-//    @PostMapping("/search")
-//    public ResponseEntity searchByName(@RequestBody GroupForm groupForm) {
-//        return groupService.searchByName(groupForm);
-//    }
-//
+
     @PostMapping("/deletes")
     public ResponseEntity deletes(@RequestBody List<Long> ids){
         return  groupService.deletes(ids);
