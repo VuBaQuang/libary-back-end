@@ -44,9 +44,11 @@ public class GroupService {
 
     public ResponseEntity saveOrUpdate(Group group) {
         try {
-            Group bo = groupDAO.findGroupByName(group.getName());
-            if (bo != null) {
-                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Tên nhóm đã tồn tại", null));
+            if(group.getRoles()==null){
+                Group bo = groupDAO.findGroupByName(group.getName());
+                if (bo != null) {
+                    return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Tên nhóm đã tồn tại", null));
+                }
             }
             groupDAO.save(group);
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Cập nhật thông tin nhóm thành công", null));

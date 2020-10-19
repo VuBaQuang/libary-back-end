@@ -15,17 +15,10 @@ public class Book {
     @Column(name = "book_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-//    @JsonIgnore
-//    private String password;
-//    private String name;
-//    private String avatar;
-//    private String email;
-//    private String phone;
-//    private String address;
-//    private Integer isLock;
-
+    private String code;
+    private Long semester;
+    private Long count;
     @CreationTimestamp
     private Date createdAt;
 

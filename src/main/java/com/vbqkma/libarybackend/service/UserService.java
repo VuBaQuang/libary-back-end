@@ -260,7 +260,10 @@ public class UserService {
     public ResponseEntity register(RegisterDTO user) {
         try {
             User model = new User(null, user.getUsername(), user.getPassword(), user.getName(), user.getEmail(), user.getPhone(), user.getAddress());
+            model.setIsLock(1);
             model.setPassword(encoder.encode(user.getPassword()));
+            model.setAvatar("https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80");
+            model.setName(user.getUsername());
             userDAO.save(model);
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "register_success", model));
         } catch (Exception e) {
