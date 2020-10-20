@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class EmailUtil {
     public static void sendMail(String host, String port, final String userName, final String password, String toAddress, String subject, String htmlBody)
-            throws AddressException, MessagingException {
+            throws MessagingException {
         Properties properties = new Properties();
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", port);
