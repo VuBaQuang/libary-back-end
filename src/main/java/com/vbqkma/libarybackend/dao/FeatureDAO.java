@@ -11,5 +11,6 @@ import java.util.List;
 
 @Repository
 public interface FeatureDAO extends JpaRepository<Feature, Long> {
-//    public List<Feature> findAll();
+    public Feature findFeatureByNameIgnoreCase(String name);
+    public Feature findFeatureByCodeIgnoreCase(String Code);
 }

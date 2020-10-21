@@ -1,10 +1,16 @@
 package com.vbqkma.libarybackend.service;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.vbqkma.libarybackend.config.jwt.JwtTokenProvider;
 import com.vbqkma.libarybackend.config.jwt.UserJwtDetails;
+import com.vbqkma.libarybackend.dao.BookDAO;
+import com.vbqkma.libarybackend.dao.BorrowBookDAO;
 import com.vbqkma.libarybackend.dao.GroupDAO;
 import com.vbqkma.libarybackend.dao.UserDAO;
 import com.vbqkma.libarybackend.dto.*;
+import com.vbqkma.libarybackend.model.Book;
+import com.vbqkma.libarybackend.model.BorrowBook;
 import com.vbqkma.libarybackend.model.Group;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
@@ -31,6 +37,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +50,12 @@ public class UserService {
 
     @Autowired
     private GroupDAO groupDAO;
+
+    @Autowired
+    private BookDAO bookDAO;
+
+    @Autowired
+    private BorrowBookDAO borrowBookDAO;
 
     @Autowired
     private JwtTokenProvider tokenProvider;
@@ -58,6 +71,7 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder encoder;
+
     public ResponseEntity createNewPassword(UserDTO userDTO) {
         try {
             String token = (String) redisTemplate.opsForValue().get("createNewPassword" + userDTO.getUsername());
@@ -82,7 +96,7 @@ public class UserService {
         try {
             String token = (String) redisTemplate.opsForValue().get("confirmViaMail" + userDTO.getUsername());
             if (token.equals(userDTO.getToken())) {
-                redisTemplate.opsForValue().set("createNewPassword"+ userDTO.getUsername(),userDTO.getToken());
+                redisTemplate.opsForValue().set("createNewPassword" + userDTO.getUsername(), userDTO.getToken());
                 redisTemplate.delete("confirmViaMail" + userDTO.getUsername());
                 return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Xác nhận thành công", null));
             } else {
@@ -186,6 +200,51 @@ public class UserService {
 
     }
 
+    @Transactional
+    public ResponseEntity borrowBook(UserDTO userDTO) {
+        try {
+
+            User user = userDAO.findUserByUsername(userDTO.getUsername());
+            Book book = bookDAO.getOne(userDTO.getBook().getId());
+            if (book.getCount() <= 0) {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Số lượng sách đã hết", ""));
+            }
+            if (user != null) {
+                List<BorrowBook> borrowBooks = borrowBookDAO.findBorrowBooksByUser(user);
+                for (BorrowBook borrowBook : borrowBooks) {
+                    if (borrowBook.getBook().getId() == userDTO.getBook().getId() && (borrowBook.getStatus() == 1 || borrowBook.getStatus() == 2 || borrowBook.getStatus() == 3)) {
+                        return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Tài khoản của bạn đã mượn sách này !", ""));
+                    }
+                }
+
+                BorrowBook borrowBook = new BorrowBook();
+                borrowBook.setBook(userDTO.getBook());
+                borrowBook.setUser(user);
+                borrowBook.setStatus(2L);
+                borrowBookDAO.save(borrowBook);
+//
+//                Set<Book> books = new HashSet<>();
+//                books = user.getBooks();
+//                books.add(userDTO.getBook());
+//                user.setBooks(books);
+//                userDAO.save(user);
+
+
+                book.setCount(book.getCount() - 1);
+                book.setBorrowed(book.getBorrowed() + 1);
+                bookDAO.save(book);
+
+                return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Mượn sách thành công", null));
+            } else {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "User is invalid", ""));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
+        }
+    }
+
     public ResponseEntity checkExist(UserDTO userDTO) {
         if (findUserByUsername(userDTO.getUsername()) != null) {
             return ResponseEntity.ok().body(new SimpleResponse("EXIST", "Tên tài khoản đã tồn tại", ""));
@@ -249,7 +308,11 @@ public class UserService {
         logger.info("ACCESS TOKEN: " + token);
         try {
             User user = getUserByToken(token);
-            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", user));
+            List<BorrowBook> borrowBooks = borrowBookDAO.findBorrowBooksByUser(user);
+            UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), null, user.getName(), user.getAvatar(), user.getIsLock(), user.getCreatedAt());
+            result.setBorrowBooks(borrowBooks);
+            result.setGroups(user.getGroups());
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "detail_success", result));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SimpleResponse("error", "server_error", null));
@@ -306,7 +369,7 @@ public class UserService {
                 redisTemplate.opsForValue().set(user.getId().toString(), jwtToken, Duration.ofHours(1));
                 redisTemplate.opsForValue().set(user.getUsername(), jwtAuth, Duration.ofHours(1));
 
-                UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwtToken, user.getName(), user.getAvatar(), user.getIsLock());
+                UserDTO result = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getAddress(), jwtToken, user.getName(), user.getAvatar(), user.getIsLock(), user.getCreatedAt());
 
                 Cookie cookie_token = new Cookie("Kma-Token", jwtToken);
                 cookie_token.setMaxAge(3600);
@@ -380,7 +443,7 @@ public class UserService {
             String jwt = tokenProvider.generateTokenFromString(RandomStringUtils.random(8, true, true));
             redisTemplate.delete("confirmViaMail" + userDTO.getUsername());
             redisTemplate.opsForValue().set("confirmViaMail" + userDTO.getUsername(), jwt, Duration.ofMinutes(15));
-          User user = userDAO.findUserByUsername(userDTO.getUsername());
+            User user = userDAO.findUserByUsername(userDTO.getUsername());
             mailService.sendMail(
                     userDTO.getEmail(),
                     "Reset mật khẩu",

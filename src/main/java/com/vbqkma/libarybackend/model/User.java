@@ -43,6 +43,11 @@ public class User {
     )
     Set<Group> groups = new HashSet<>();
 
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private Set<BorrowBook> borrowBooks;
+
+
     public User() {
     }
 

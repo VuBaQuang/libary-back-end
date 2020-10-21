@@ -8,7 +8,9 @@ import com.vbqkma.libarybackend.dto.ChangePasswordDTO;
 import com.vbqkma.libarybackend.dto.LoginDTO;
 import com.vbqkma.libarybackend.dto.RegisterDTO;
 import com.vbqkma.libarybackend.dto.UserDTO;
+import com.vbqkma.libarybackend.model.Feature;
 import com.vbqkma.libarybackend.model.Group;
+import com.vbqkma.libarybackend.model.Permission;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.response.SimpleResponse;
 import com.vbqkma.libarybackend.utils.StringUtils;
@@ -51,6 +53,22 @@ public class FeatureService {
             e.printStackTrace();
             return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
         }
-
+    }
+    public ResponseEntity saveOrUpdate(Feature feature) {
+        try {
+            Feature bo = featureDAO.findFeatureByNameIgnoreCase(feature.getName());
+            if (bo != null) {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Tên quyền đã tồn tại", null));
+            }
+            bo = featureDAO.findFeatureByCodeIgnoreCase(feature.getCode());
+            if (bo != null) {
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Mã quyền đã tồn tại", null));
+            }
+            featureDAO.save(feature);
+            return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Thêm quyền thành công", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
+        }
     }
 }

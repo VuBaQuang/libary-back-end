@@ -1,6 +1,8 @@
 package com.vbqkma.libarybackend.controller;
 
 import com.vbqkma.libarybackend.dto.UserDTO;
+import com.vbqkma.libarybackend.model.Feature;
+import com.vbqkma.libarybackend.model.Permission;
 import com.vbqkma.libarybackend.model.User;
 import com.vbqkma.libarybackend.service.FeatureService;
 import com.vbqkma.libarybackend.service.UserService;
@@ -25,5 +27,9 @@ public class FeatureController {
         return featureService.getAll();
     }
 
+    @PostMapping
+    public ResponseEntity saveOrUpdate(@RequestBody Feature feature) {
+        return featureService.saveOrUpdate(feature);
+    }
 
 }

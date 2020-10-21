@@ -12,4 +12,6 @@ import java.util.Set;
 
 @Repository
 public interface PermissionDAO extends JpaRepository<Permission, Long> {
+    public Permission findPermissionByNameIgnoreCase(String name);
+    public Permission findPermissionByCodeIgnoreCase(String code);
 }

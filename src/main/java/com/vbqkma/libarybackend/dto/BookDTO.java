@@ -11,6 +11,7 @@ import java.util.Date;
 public class BookDTO extends SimpleDTO {
 
     private Long id;
+    private String username;
     private String name;
     private String code;
     private Long semester;

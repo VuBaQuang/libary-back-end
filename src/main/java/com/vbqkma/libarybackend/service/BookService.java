@@ -1,6 +1,7 @@
 package com.vbqkma.libarybackend.service;
 
 import com.vbqkma.libarybackend.dao.BookDAO;
+import com.vbqkma.libarybackend.dao.UserDAO;
 import com.vbqkma.libarybackend.dto.BookDTO;
 import com.vbqkma.libarybackend.dto.GroupDTO;
 import com.vbqkma.libarybackend.model.Book;
@@ -20,6 +21,9 @@ public class BookService {
     @Autowired
     BookDAO bookDAO;
 
+    @Autowired
+    UserDAO userDAO;
+
     public ResponseEntity saveOrUpdate(BookDTO bookDTO) {
         Book book = bookDAO.findBookByCode(bookDTO.getCode());
         if (bookDTO.getIsNew() != null && bookDTO.getIsNew() == 2) {
@@ -38,6 +42,7 @@ public class BookService {
         bo.setCount(bookDTO.getCount());
         bo.setName(bookDTO.getName());
         bo.setSemester(bookDTO.getSemester());
+        bo.setBorrowed(0L);
         bookDAO.save(bo);
         return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Thêm mới sách thành công", ""));
     }
@@ -54,6 +59,10 @@ public class BookService {
     @Transactional
     public ResponseEntity deletes(List<Long> ids) {
         try {
+            List<Long> longs  = bookDAO.findIdBookInBorrowed(ids);
+            if(longs.size()>0){
+                return ResponseEntity.ok().body(new SimpleResponse("ERROR", "Có sách đang cho mượn, không thể xóa !", ""));
+            }
             bookDAO.deleteByIdIn(ids);
             return ResponseEntity.ok().body(new SimpleResponse("DELETE_SUCCESS", "", null));
         } catch (Exception e) {
@@ -61,4 +70,5 @@ public class BookService {
             return ResponseEntity.ok().body(new SimpleResponse("ERROR", "server_error", ""));
         }
     }
+
 }

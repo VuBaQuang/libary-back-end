@@ -28,10 +28,11 @@ public class BookController {
     public ResponseEntity saveOrUpdate(@RequestBody BookDTO bookDTO) {
         return bookService.saveOrUpdate(bookDTO);
     }
-//
+
     @PostMapping(path = "/deletes")
     public ResponseEntity deletes(@RequestBody List<Long> ids) {
         return bookService.deletes(ids);
     }
+
 
 }
