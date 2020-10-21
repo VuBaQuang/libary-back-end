@@ -130,7 +130,7 @@ public class UserService {
     @Transactional
     public ResponseEntity saveOrUpdate(UserDTO userDTO) {
         try {
-            if (userDTO.getIsUpdateInfo()) {
+            if (userDTO.getIsUpdateInfo()!=null && userDTO.getIsUpdateInfo()) {
                 User user = userDAO.findUserById(userDTO.getId());
                 if (userDTO.getIsUpdateInfo()) {
                     user.setName(userDTO.getName());
