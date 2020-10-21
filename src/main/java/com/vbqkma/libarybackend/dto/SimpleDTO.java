@@ -8,4 +8,5 @@ public class SimpleDTO {
     private int pageSize;
     Boolean conditionSort;
     String sortField;
+    String valueSearchBook;
 }

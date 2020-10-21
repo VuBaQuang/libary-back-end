@@ -17,6 +17,7 @@ import java.util.Set;
 @Data
 
 public class UserDTO extends SimpleDTO {
+    private Boolean isUpdateInfo;
     private Long id;
     private String username;
     private String email;
@@ -36,7 +37,6 @@ public class UserDTO extends SimpleDTO {
     private List<BorrowBook> borrowBooks;
     private List<Long> userIds;
     private List<Long> groupIds;
-//    private List<Group> groups;
     private List<User> users;
     private Boolean isJoinGroup;
     private Boolean isLeaveGroup;

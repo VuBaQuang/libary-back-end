@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
@@ -46,5 +47,8 @@ public class UserController {
     public ResponseEntity borrowBook(@RequestBody BorrowBook borrowBook) {
         return borrowBookService.saveOrUpdate(borrowBook);
     }
-
+    @PostMapping(path = "/return-book")
+    public ResponseEntity returnBook(@RequestBody BorrowBook borrowBook, HttpServletRequest request) {
+        return userService.returnBook(borrowBook,request);
+    }
 }

@@ -1,15 +1,21 @@
 package com.vbqkma.libarybackend.dao;
 
 import com.vbqkma.libarybackend.model.Book;
+import com.vbqkma.libarybackend.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface BookDAO extends JpaRepository<Book, Long> {
     public Book findBookByCode(String code);
 
     public void deleteByIdIn(List<Long> ids);
+
+    public Page<Book>findBooksByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(String name, String code, Pageable pageable);
 
     public List<Book> findBooksByIdIn(List<Long> ids);
 

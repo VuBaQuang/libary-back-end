@@ -1,7 +1,5 @@
 package com.vbqkma.libarybackend.service;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.vbqkma.libarybackend.config.jwt.JwtTokenProvider;
 import com.vbqkma.libarybackend.config.jwt.UserJwtDetails;
 import com.vbqkma.libarybackend.dao.BookDAO;
@@ -37,7 +35,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,6 +68,27 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder encoder;
+
+    public ResponseEntity returnBook(BorrowBook borrowBook, HttpServletRequest request) {
+        String token = getToken(request);
+        User user = getUserByToken(token);
+        borrowBook.setStatus(5L);
+        Book s = borrowBook.getBook();
+        s.setCount(s.getCount() + 1);
+        bookDAO.save(s);
+        borrowBookDAO.save(borrowBook);
+        mailService.sendMail(
+                user.getEmail(),
+                "Trả sách",
+                "Trả sách thành công",
+                user.getUsername() + " - " + user.getName(),
+                "",
+                "Liên hệ quản trị viên",
+                "https://www.facebook.com/profile.php?id=100013548901162"
+
+        );
+        return ResponseEntity.ok().body(new SimpleResponse("U_SUCCESS", "", ""));
+    }
 
     public ResponseEntity createNewPassword(UserDTO userDTO) {
         try {
@@ -112,6 +130,15 @@ public class UserService {
     @Transactional
     public ResponseEntity saveOrUpdate(UserDTO userDTO) {
         try {
+            if (userDTO.getIsUpdateInfo()) {
+                User user = userDAO.findUserById(userDTO.getId());
+                if (userDTO.getIsUpdateInfo()) {
+                    user.setName(userDTO.getName());
+                    user.setEmail(userDTO.getEmail());
+                    userDAO.save(user);
+                    return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "Cập nhật người dùng thành công", null));
+                }
+            }
             if (userDTO.getUserIds() != null && userDTO.getUserIds().size() > 0) {
                 for (int i = 0; i < userDTO.getUserIds().size(); i++) {
                     User user = userDAO.findUserById(userDTO.getUserIds().get(i));
@@ -327,7 +354,21 @@ public class UserService {
             model.setPassword(encoder.encode(user.getPassword()));
             model.setAvatar("https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80");
             model.setName(user.getUsername());
+            Group group = groupDAO.findById(5L).get();
+            Set<Group> groups = new HashSet<>();
+            groups.add(group);
+            model.setGroups(groups);
             userDAO.save(model);
+            mailService.sendMail(
+                    user.getEmail(),
+                    "Đổi mật khẩu",
+                    "Đăng ký thành công",
+                    user.getUsername() + " - " + user.getName(),
+                    "",
+                    "Đăng nhập",
+                    "https://localhost:8051/login"
+
+            );
             return ResponseEntity.ok().body(new SimpleResponse("SUCCESS", "register_success", model));
         } catch (Exception e) {
             e.printStackTrace();

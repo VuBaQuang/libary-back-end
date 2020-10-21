@@ -49,7 +49,11 @@ public class BookService {
 
     public ResponseEntity getAll(BookDTO bookDTO) {
         try {
+
             Pageable pageable = PageRequest.of(bookDTO.getPage() > 0 ? bookDTO.getPage() - 1 : 0, bookDTO.getPageSize() > 0 ? bookDTO.getPageSize() : 10);
+           if(bookDTO.getValueSearchBook()!=null && !bookDTO.getValueSearchBook().trim().equalsIgnoreCase("")){
+               return ResponseEntity.ok().body(new SimpleResponse("GET_SUCCESS", "", bookDAO.findBooksByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(bookDTO.getValueSearchBook(),bookDTO.getValueSearchBook(),pageable)));
+           }
             return ResponseEntity.ok().body(new SimpleResponse("GET_SUCCESS", "", bookDAO.findAll(pageable)));
         } catch (Exception e) {
             e.printStackTrace();
